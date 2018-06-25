@@ -52,7 +52,11 @@
         if (!socket || socket.readyState != WebSocket.OPEN) {
             updateState();
         }
-        let data = inputPair.value;
+        let data = escape(inputPair.value);
+        if (data.length != 6 || !/[A-Z]{6}/.test(data)) {
+            data = "";
+            alert("Input does not match the pattern of six uppercase letters");
+        }
         socket.send(data);
     }
 

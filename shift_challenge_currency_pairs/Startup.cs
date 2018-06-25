@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection
+using Microsoft.Extensions.DependencyInjection;
 
 namespace shift_challenge_currency_pairs
 {
@@ -75,11 +75,11 @@ namespace shift_challenge_currency_pairs
         private async Task HandlePairLookupRequest(HttpContext context, WebSocket webSocket)
         {
 
-            Dictionary<string, double> dict = new Dictionary<string, double>();
-            dict.Add("BTCUSD", 6140.9951);
-            dict.Add("ETHUSD", 473.995);
-            dict.Add("ETHBTC", 0.077060);
-            dict.Add("XRPUSD", 0.48723);
+            Dictionary<string, double> pairs = new Dictionary<string, double>();
+            pairs.Add("BTCUSD", 6140.9951);
+            pairs.Add("ETHUSD", 473.995);
+            pairs.Add("ETHBTC", 0.077060);
+            pairs.Add("XRPUSD", 0.48723);
 
             WebSocketReceiveResult result;
             var message = new ArraySegment<byte>(new byte[4096]);
@@ -94,9 +94,9 @@ namespace shift_challenge_currency_pairs
                 var messageBytes = message.Take<byte>(result.Count).ToArray<byte>();
                 receivedMessage = Encoding.UTF8.GetString(messageBytes);
                 var byteMessage = Encoding.UTF8.GetBytes("(no matching pair found)"); ;
-                if (dict.ContainsKey(receivedMessage))
+                if (pairs.ContainsKey(receivedMessage))
                 {
-                    double exchangeRate = dict[receivedMessage];
+                    double exchangeRate = pairs[receivedMessage];
                     byteMessage = Encoding.UTF8.GetBytes(exchangeRate.ToString());
                 }
                 var segment = new ArraySegment<byte>(byteMessage);
@@ -106,4 +106,3 @@ namespace shift_challenge_currency_pairs
         }
     }
 }
-s
