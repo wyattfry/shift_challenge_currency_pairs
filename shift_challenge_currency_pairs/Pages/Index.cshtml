@@ -1,0 +1,73 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+<h1>Cryptocurrency Pair Value Checker</h1>
+<p>Enter a Cryptocurrency pair to find out its value. Pair examples: BTCUSD, ETHUSD, ETHBTC, XRPUSD</p>
+<label>Pair:</label>
+<input id="inputPair" />
+<button id="submitButton" type="submit">Submit</button>
+<p style="font-size: large">Value: <span id="spanPairValue">--</span></p>
+<label>WebSockets status: </label><span style="font-family: monospace; background-color: lightgray" id="statusMessage"></span>
+
+<script>
+    // This code borrows heavily from
+    // https://github.com/aspnet/Docs/tree/master/aspnetcore/fundamentals/websockets/sample
+
+
+    let socket;
+    const spanPairValue = document.getElementById("spanPairValue");
+    const submitButton = document.getElementById("submitButton");
+    const statusMessage = document.getElementById("statusMessage");
+    const inputPair = document.getElementById("inputPair");
+
+    const updateState = () => {
+        if (!socket) {
+            document.getElementById("inputPair").disabled = true;
+            document.getElementById("submitButton").disabled = true;
+        } else {
+            switch (socket.readyState) {
+                case WebSocket.CLOSED:
+                    statusMessage.innerHTML = "connection to server closed" + "<br>" + statusMessage.innerHTML;
+                    break;
+                case WebSocket.CLOSING:
+                    statusMessage.innerHTML = "connection to server closing..." + "<br>" + statusMessage.innerHTML;
+                    break;
+                case WebSocket.CONNECTING:
+                    statusMessage.innerHTML = "connecting to server..." + "<br>" + statusMessage.innerHTML;
+                    break;
+                case WebSocket.OPEN:
+                    statusMessage.innerHTML = "connected to server" + "<br>" + statusMessage.innerHTML;
+                    document.getElementById("inputPair").disabled = false;
+                    document.getElementById("submitButton").disabled = false;
+                    break;
+                default:
+                    statusMessage.innerHTML = `unknown WebSocket state: ${socket.readyState}<br>${statusMessage.innerHTML}`;
+            }
+        }
+    } // updateState
+
+    submitButton.onclick = () => {
+        if (!socket || socket.readyState != WebSocket.OPEN) {
+            updateState();
+        }
+        let data = inputPair.value;
+        socket.send(data);
+    }
+
+    const connectSocket = () => {
+        updateState();
+        const port = document.location.port ? `:${document.location.port}` : "";
+        socket = new WebSocket(`ws://${document.location.hostname}${port}/ws`);
+        socket.onopen = updateState;
+        socket.onclose = updateState;
+        socket.onerror = updateState;
+        socket.onmessage = e => {
+            spanPairValue.innerHTML = e.data; // consider escaping returned data
+        }
+    }
+
+    connectSocket();
+
+</script>
